@@ -2,9 +2,9 @@
   "name": "vs-auto-correct",
   "displayName": "VS Auto Correct",
   "description": "静默自动纠正代码拼写错误",
-  "version": "0.1.6",
+  "version": "0.1.9",
   "engines": {
-    "vscode": "^1.80.0"
+    "vscode": "^1.100.0" 
   },
   "icon": "icon.png",
   "publisher": "KevinHuang",
@@ -54,7 +54,7 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.109.0",
+    "@types/vscode": "1.100.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
     "typescript-eslint": "^8.54.0",
@@ -62,5 +62,9 @@
     "typescript": "^5.9.3",
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2"
-  }
+  },
+  "repository": {
+  "type": "git",
+  "url": "https://github.com/KevinHuangIsLearning/vs-auto-correct.git"
+}
 }
