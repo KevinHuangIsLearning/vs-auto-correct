@@ -1,0 +1,38 @@
+name: Publish Extension
+
+on:
+  push:
+    tags:
+      - 'v*' # 当你推送以 v 开头的标签（如 v1.0.0）时触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Package Extension
+        run: npx vsce package # 打包生成 .vsix 文件
+
+      - name: Get Version
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "*.vsix" # 将生成的 vsix 文件上传到 Release
+          name: Release ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 自动使用 GitHub 提供的 Token
