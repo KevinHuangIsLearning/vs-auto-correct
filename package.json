@@ -2,10 +2,13 @@
   "name": "vs-auto-correct",
   "displayName": "VS Auto Correct",
   "description": "静默自动纠正代码拼写错误",
-  "version": "0.1.0",
+  "version": "0.1.6",
   "engines": {
-    "vscode": "^1.109.0"
+    "vscode": "^1.80.0"
   },
+  "icon": "icon.png",
+  "publisher": "KevinHuang",
+  "author": {"name": "KevinHuang"},
   "categories": [
     "Other"
   ],
