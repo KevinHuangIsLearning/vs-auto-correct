@@ -33,6 +33,9 @@
           },
           "markdown": {
             "teh": "the"
+          },
+          "cpp" : {
+            "srs" : "std::ranges::sort($1);"
           }
         },
         "description": "针对不同语言设置不同的错词映射表"

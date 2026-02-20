@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 let isProcessingEdit = false;
+let isEnabled = true;
 
 // 定义多行展开时的行内提示样式
 const expandDecorationType = vscode.window.createTextEditorDecorationType({
@@ -21,14 +22,57 @@ function getConfig(languageId: string) {
     return { sortedTypos, triggerChars: new Set(triggerCharsArray) };
 }
 
+function updateStatusBarItem(statusBarItem: vscode.StatusBarItem) {
+    statusBarItem.text = isEnabled ? "$(zap) AutoCorrect" : "$(circle-slash) AutoCorrect";
+    statusBarItem.tooltip = isEnabled ? "点击禁用 AutoCorrect" : "点击启用 AutoCorrect";
+}
+
+async function applyCorrection(editor: vscode.TextEditor, wordRange: vscode.Range, replacement: string) {
+    const cursorPlaceholder = "$1";
+    const hasPlaceholder = replacement.includes(cursorPlaceholder);
+    
+    const finalText = hasPlaceholder ? replacement.replace(cursorPlaceholder, "") : replacement;
+
+    const success = await editor.edit(editBuilder => {
+        editBuilder.replace(wordRange, finalText);
+    }, { 
+        undoStopBefore: true, 
+        undoStopAfter: true 
+    });
+
+    if (success && hasPlaceholder) {
+        const offset = replacement.indexOf(cursorPlaceholder);
+        // 将整个字符串按 $1 分割，看 $1 前面有多少行，多少个字符
+        const parts = replacement.split(cursorPlaceholder)[0].split('\n');
+        const lineOffset = parts.length - 1;
+        const charOffset = parts[parts.length - 1].length;
+
+        const newPosition = new vscode.Position(
+            wordRange.start.line + lineOffset,
+            (lineOffset === 0 ? wordRange.start.character : 0) + charOffset
+        );
+        editor.selection = new vscode.Selection(newPosition, newPosition);
+    }
+    
+    return success;
+}
+
 export function activate(context: vscode.ExtensionContext) {
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    statusBarItem.text = "$(zap) AutoCorrect";
+    updateStatusBarItem(statusBarItem);
     statusBarItem.show();
     context.subscriptions.push(statusBarItem);
 
-    const disposable = vscode.workspace.onDidChangeTextDocument(event => {
-        if (isProcessingEdit) return;
+    const toggleCommand = vscode.commands.registerCommand('vsAutoCorrect.toggle', () => {
+        isEnabled = !isEnabled;
+        updateStatusBarItem(statusBarItem);
+        vscode.window.showInformationMessage(isEnabled ? 'AutoCorrect 已启用' : 'AutoCorrect 已禁用');
+    });
+    statusBarItem.command = 'vsAutoCorrect.toggle';
+    context.subscriptions.push(toggleCommand);
+
+    const disposable = vscode.workspace.onDidChangeTextDocument(async event => {
+        if (!isEnabled || isProcessingEdit) return;
 
         const { document, contentChanges } = event;
         if (contentChanges.length !== 1) return;
@@ -60,30 +104,23 @@ export function activate(context: vscode.ExtensionContext) {
 
                 isProcessingEdit = true;
                 
-                editor.edit(editBuilder => {
-                    editBuilder.replace(wordRange, finalCorrection);
-                }, { 
-                    undoStopBefore: true, 
-                    undoStopAfter: true 
-                }).then(success => {
-                    isProcessingEdit = false;
-                    if (success && isMultiLine) {
-                        const newPosition = editor.selection.active;
-                        const decorationRange = new vscode.Range(newPosition, newPosition);
+                const success = await applyCorrection(editor, wordRange, finalCorrection);
+                isProcessingEdit = false;
 
-                        // 在新光标位置显示提示
-                        editor.setDecorations(expandDecorationType, [decorationRange]);
-                        
-                        // 1秒后消失
-                        setTimeout(() => {
-                            editor.setDecorations(expandDecorationType, []);
-                        }, 1000);
+                if (success && isMultiLine) {
+                    const newPosition = editor.selection.active;
+                    const decorationRange = new vscode.Range(newPosition, newPosition);
 
-                        vscode.window.setStatusBarMessage(`Expanded code block.`, 2500);
-                    } else if (success) {
-                        vscode.window.setStatusBarMessage(`Corrected: "${typo}" -> "${correction}"`, 2500);
-                    }
-                }, () => isProcessingEdit = false);
+                    editor.setDecorations(expandDecorationType, [decorationRange]);
+                    
+                    setTimeout(() => {
+                        editor.setDecorations(expandDecorationType, []);
+                    }, 1000);
+
+                    vscode.window.setStatusBarMessage(`Expanded code block.`, 2500);
+                } else if (success) {
+                    vscode.window.setStatusBarMessage(`Corrected: "${typo}" -> "${correction}"`, 2500);
+                }
 
                 break;
             }

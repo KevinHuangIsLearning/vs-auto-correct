@@ -1,0 +1,52 @@
+{
+    "typescript": {
+        "itn": "int",
+        "funtion": "function"
+    },
+    "python": {
+        "itn": "int",
+        "defun": "def"
+    },
+    "markdown": {
+        "teh": "the"
+    },
+    "cpp": {
+        "inc": "#include <bits/stdc++.h>",
+        "usingstd": "using namespace std;",
+        "ll": "long long",
+        "fastio": "ios::sync_with_stdio(false); cin.tie(0); cout.tie(0);",
+        "mian": "int main()",
+
+        "vector": "std::vector",
+        "string": "std::string",
+        "pq": "std::priority_queue",
+        "pqi": "std::priority_queue<int>",
+        "pqig": "std::priority_queue<int, std::vector<int>, std::greater<int>>",
+        "pair": "std::pair<int, int>",
+        "map": "std::map",
+        "set": "std::set",
+        "mset": "memset(",
+
+        "sort": "std::sort(",
+        "lower": "lower_bound(",
+        "upper": "upper_bound(",
+        "push": "push_back(",
+        "pushb": "push_back(",
+        "emplace": "emplace_back(",
+        "make_pair": "std::make_pair",
+
+        "itn": "int",
+        "viod": "void",
+        "retunr": "return",
+        "brak": "break",
+        "cont": "continue",
+        "constant": "const int",
+        "inf": "0x3f3f3f3f",
+        "mod": "1000000007",
+
+        "cout": "std::cout",
+        "endl": " << std::endl",
+        "cerr": "std::cerr",
+        "db": "std::cerr << \"Debug: \" << $1 << std::endl;"
+    }
+}
