@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
 
+# 👇 核心修复：在这里添加权限设置
+permissions:
+  contents: write # 赋予创建 Release 和上传文件的权限
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,7 +19,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
 
       - name: Install Dependencies
         run: npm install
@@ -31,7 +35,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: "*.vsix"
-          name: Release ${{ env.VERSION }}
+          name: Release ${{ github.ref_name }} 
           draft: false
           prerelease: false
         env:
