@@ -1,71 +1,24 @@
-# vs-auto-correct README
+# VS Auto Correct
 
-This is the README for your extension "vs-auto-correct". After writing up a brief description, we recommend including the following sections.
+**静默纠错，拒绝干扰。** 这是一个高效的代码纠错插件，能在不打断思路的前提下修正拼写错误。
 
-## Features
+## 功能特性
+- **静默纠错**：输入触发字符（空格、分号等）时自动修正（如 `itn` -> `int`）。
+- **短语匹配**：支持带空格的词组（如 `auto correct` -> `AutoCorrect`）。
+- **代码块展开**：支持将简写展开为带缩进的多行块。
+- **动态提示**：展开多行时会在光标后显示 `⤢ Expanding Block...`。
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+## ⚙️ 配置示例
+在 `settings.json` 中配置你的个性化词库：
 
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+```json
+"vsAutoCorrect.languageSpecific": {
+  "*": {
+    "itn": "int",
+    "auto correct": "AutoCorrect"
+  },
+  "go": {
+    "iferr": "if err != nil {\n\treturn err\n}"
+  }
+}
+```
