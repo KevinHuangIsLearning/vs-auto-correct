@@ -31,28 +31,45 @@ async function applyCorrection(editor: vscode.TextEditor, wordRange: vscode.Rang
     const cursorPlaceholder = "$1";
     const hasPlaceholder = finalTextWithIndentation.includes(cursorPlaceholder);
     
-    // 真正写入文档的文本（去掉 $1）
+    // 1. 准备真正要插入的文本
     const textToInsert = hasPlaceholder ? finalTextWithIndentation.replace(cursorPlaceholder, "") : finalTextWithIndentation;
 
+    // 2. 执行编辑
     const success = await editor.edit(editBuilder => {
         editBuilder.replace(wordRange, textToInsert);
     }, { 
-        undoStopBefore: true, 
-        undoStopAfter: true 
+        undoStopBefore: false, 
+        undoStopAfter: false 
     });
 
-    if (success && hasPlaceholder) {
-        // 基于已经处理过缩进的文本计算位置
-        const parts = finalTextWithIndentation.split(cursorPlaceholder)[0].split('\n');
-        const lineOffset = parts.length - 1;
-        const charOffset = parts[parts.length - 1].length;
+    if (success) {
+        let newPosition: vscode.Position;
 
-        const newPosition = new vscode.Position(
-            wordRange.start.line + lineOffset,
-            // 如果是第一行，要加上起始位置的 character；如果是后续行，直接就是 charOffset
-            (lineOffset === 0 ? wordRange.start.character : 0) + charOffset
-        );
+        if (hasPlaceholder) {
+            // 情况 A：有占位符，计算 $1 的位置
+            const parts = finalTextWithIndentation.split(cursorPlaceholder)[0].split('\n');
+            const lineOffset = parts.length - 1;
+            const charOffset = parts[parts.length - 1].length;
+
+            newPosition = new vscode.Position(
+                wordRange.start.line + lineOffset,
+                (lineOffset === 0 ? wordRange.start.character : 0) + charOffset
+            );
+        } else {
+            // 情况 B：没有占位符，强制跳到替换文本的末尾
+            const parts = textToInsert.split('\n');
+            const lineOffset = parts.length - 1;
+            const charOffset = parts[parts.length - 1].length;
+
+            newPosition = new vscode.Position(
+                wordRange.start.line + lineOffset,
+                (lineOffset === 0 ? wordRange.start.character : 0) + charOffset
+            );
+        }
+
+        // 3. 强制移动光标并确保视图可见
         editor.selection = new vscode.Selection(newPosition, newPosition);
+        editor.revealRange(new vscode.Range(newPosition, newPosition));
     }
     
     return success;
@@ -92,24 +109,37 @@ export function activate(context: vscode.ExtensionContext) {
 
         for (let [typo, correction] of sortedTypos) {
             if (textBeforeTrigger.endsWith(typo)) {
-                const wordStart = triggerPosition.translate(0, -typo.length);
-                const wordRange = new vscode.Range(wordStart, triggerPosition);
+                const charBeforeIndex = triggerPosition.character - typo.length - 1;
+                        if (charBeforeIndex >= 0) {
+                            const charBefore = line.text[charBeforeIndex];
+                            // 如果前面是字母、数字或下划线，说明它是单词的一部分（如 cin 中的 in），跳过
+                            if (/[a-zA-Z0-9_]/.test(charBefore)) {
+                                continue;
+                            }
+                        }
+                        // 如果 charBeforeIndex < 0，说明是在行首，直接允许替换
 
-                const isMultiLine = correction.includes('\n');
-                let finalCorrection = correction;
+                        const wordStart = triggerPosition.translate(0, -typo.length);
+                        
+                        // --- 2. 空格冗余优化 ---
+                        let finalCorrection = correction;
+                        // 如果触发字符（change.text）是空格，且我们的 correction 结尾也是空格
+                        // 我们就把 correction 结尾的空格去掉，防止出现双空格
+                        if (change.text === ' ' && finalCorrection.endsWith(' ')) {
+                            finalCorrection = finalCorrection.slice(0, -1);
+                        }
 
-                if (isMultiLine) {
-                    const indentation = line.text.match(/^\s*/)?.[0] || '';
-                    // 只有从第二行开始才加缩进
-                    finalCorrection = correction.split('\n').join('\n' + indentation);
-                }
+                        const isMultiLine = finalCorrection.includes('\n');
+                        if (isMultiLine) {
+                            const indentation = line.text.match(/^\s*/)?.[0] || '';
+                            finalCorrection = finalCorrection.split('\n').join('\n' + indentation);
+                        }
 
-                // 使用 try-finally 确保发生错误时也能重置 isProcessingEdit
-                isProcessingEdit = true;
-                try {
-                    const success = await applyCorrection(editor, wordRange, finalCorrection);
-                    
-                    if (success) {
+                        isProcessingEdit = true;
+                        try {
+                            // 注意：这里替换的 Range 应该包含那个已经敲出来的 typo
+                            const wordRange = new vscode.Range(wordStart, triggerPosition);
+                            const success = await applyCorrection(editor, wordRange, finalCorrection);                    if (success) {
                         if (isMultiLine) {
                             const newPosition = editor.selection.active;
                             editor.setDecorations(expandDecorationType, [new vscode.Range(newPosition, newPosition)]);
