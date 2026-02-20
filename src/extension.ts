@@ -68,8 +68,6 @@ export function activate(context: vscode.ExtensionContext) {
                 }).then(success => {
                     isProcessingEdit = false;
                     if (success && isMultiLine) {
-                        // 【核心修复】：在替换成功后，获取光标当前的新位置
-                        // editor.selection.active 会指向替换完成后的终点
                         const newPosition = editor.selection.active;
                         const decorationRange = new vscode.Range(newPosition, newPosition);
 
