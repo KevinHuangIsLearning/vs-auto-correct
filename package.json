@@ -1,0 +1,63 @@
+{
+  "name": "vs-auto-correct",
+  "displayName": "VS Auto Correct",
+  "description": "静默自动纠正代码拼写错误",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.109.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+"contributes": {
+  "configuration": {
+    "title": "AutoCorrect Settings",
+    "properties": {
+      "vsAutoCorrect.languageSpecific": {
+        "type": "object",
+        "default": {
+          "typescript": {
+            "itn": "int",
+            "funtion": "function"
+          },
+          "python": {
+            "itn": "int",
+            "defun": "def"
+          },
+          "markdown": {
+            "teh": "the"
+          }
+        },
+        "description": "针对不同语言设置不同的错词映射表"
+      },
+      "vsAutoCorrect.triggerChars": {
+        "type": "array",
+        "default": [" ", ";", "(", ")", "{", "}", "\n", "\t"],
+        "description": "触发纠错的字符"
+      }
+    }
+  }
+},
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.109.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "typescript-eslint": "^8.54.0",
+    "eslint": "^9.39.2",
+    "typescript": "^5.9.3",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}
