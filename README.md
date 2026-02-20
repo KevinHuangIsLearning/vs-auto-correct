@@ -20,7 +20,6 @@
 ```json
 "vsAutoCorrect.languageSpecific": {
   "cpp": {
-    // for example: 
     "inc": "#include <$1>",
     "ll": "long long",
     "mian": "int main()",
